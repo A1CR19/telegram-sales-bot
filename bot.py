@@ -1,14 +1,15 @@
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-# 你自己的 file_id 图片
+# 替换为你自己的 file_id
 WELCOME_IMG_ID = "AgACAgUAAxkBAAMFaHNZiJzn1tAn3rcze61gvLf2YBUAAu_MMRsDP5lXvUaRV6ukCLEBAAMCAAN5AAM2BA"     # 欢迎图
 CARD_100_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"       # 100元图
 CARD_300_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"       # 300元图
 ORDER_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"          # 查看订单图
 CUSTOMER_IMG_ID = "AgACAgUAAxkBAAMGaHNcjZjiMsXTOg09h9Ss90Bg830AAn_EMRvYcJlXKY-YMN3mqOUBAAMCAAN4AAM2BA"       # 客服图
 
-# === /start 欢迎指令 ===
+
+# /start 欢迎语
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     name = user.first_name or user.username or "朋友"
@@ -35,8 +36,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-# === 菜单按钮功能 ===
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# 按钮点击处理
+async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
 
     if text == "🛒 购买油卡 *1 张":
@@ -70,11 +71,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("请点击下方菜单按钮选择服务 👇")
 
-# === 主函数 ===
+# 主函数
 def main():
     app = ApplicationBuilder().token("8053714790:AAGjDeDLUtueXDkeJiYeiY9kvC5nzhjuLzY").build()
+
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_buttons))
+
     app.run_polling()
 
 if __name__ == "__main__":
