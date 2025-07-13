@@ -72,7 +72,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # === 主函数 ===
 def main():
-    app = ApplicationBuilder().token("你的Bot Token").build()
+    app = ApplicationBuilder().token("8053714790:AAGjDeDLUtueXDkeJiYeiY9kvC5nzhjuLzY").build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.run_polling()
