@@ -1,22 +1,14 @@
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-import os
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-from aiohttp import web
+# 你自己的 file_id 图片
+WELCOME_IMG_ID = "AgACAgUAAxkBAAMFaHNZiJzn1tAn3rcze61gvLf2YBUAAu_MMRsDP5lXvUaRV6ukCLEBAAMCAAN5AAM2BA"     # 欢迎图
+CARD_100_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"       # 100元图
+CARD_300_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"       # 300元图
+ORDER_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"          # 查看订单图
+CUSTOMER_IMG_ID = "AgACAgUAAxkBAAMGaHNcjZjiMsXTOg09h9Ss90Bg830AAn_EMRvYcJlXKY-YMN3mqOUBAAMCAAN4AAM2BA"       # 客服图
 
-# 替换为你自己的 file_id
-WELCOME_IMG_ID = "AgACAgUAAxkBAAMFaHNZiJzn1tAn3rcze61gvLf2YBUAAu_MMRsDP5lXvUaRV6ukCLEBAAMCAAN5AAM2BA"
-CARD_100_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"
-CARD_300_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"
-ORDER_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"
-CUSTOMER_IMG_ID = "AgACAgUAAxkBAAMGaHNcjZjiMsXTOg09h9Ss90Bg830AAn_EMRvYcJlXKY-YMN3mqOUBAAMCAAN4AAM2BA"
-
-TOKEN = "你的BotToken"
-WEBHOOK_PATH = "/webhook"
-WEBHOOK_URL = "https://你的railway地址.up.railway.app" + WEBHOOK_PATH
-
-
-# /start 欢迎语
+# === /start 欢迎指令 ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     name = user.first_name or user.username or "朋友"
@@ -43,8 +35,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-
-async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# === 菜单按钮功能 ===
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
 
     if text == "🛒 购买油卡 *1 张":
@@ -78,27 +70,12 @@ async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("请点击下方菜单按钮选择服务 👇")
 
-
-async def webhook_handler(request):
-    data = await request.json()
-    await app.update_queue.put(Update.de_json(data, app.bot))
-    return web.Response()
-
-async def on_startup(app):
-    await app.bot.delete_webhook(drop_pending_updates=True)
-    await app.bot.set_webhook(url=WEBHOOK_URL)
-
+# === 主函数 ===
 def main():
-    global app
-    app = ApplicationBuilder().token(TOKEN).build()
-
+    app = ApplicationBuilder().token("8053714790:AAGjDeDLUtueXDkeJiYeiY9kvC5nzhjuLzY").build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_buttons))
-
-    # 创建 aiohttp server
-    web_app = web.Application()
-    web_app.add_routes([web.post(WEBHOOK_PATH, webhook_handler)])
-    app.run_web_app(web_app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), on_startup=on_startup)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
