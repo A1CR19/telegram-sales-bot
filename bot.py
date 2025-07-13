@@ -1,65 +1,81 @@
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-import os
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-# 自定义键盘按钮
-keyboard = [
-    ['🅜 油卡*1张', '🅜 油卡*3张', '🅜 油卡*5张'],
-    ['🅜 电信卡*10张', '🅜 电信卡*100张'],
-    ['🖨 提取卡密', '👩‍💻 在线客服']
-]
-reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+# 你自己的 file_id 图片
+WELCOME_IMG_ID = "AgACAgUAAxkBAAMFaHNZiJzn1tAn3rcze61gvLf2YBUAAu_MMRsDP5lXvUaRV6ukCLEBAAMCAAN5AAM2BA"     # 欢迎图
+CARD_100_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"       # 100元图
+CARD_300_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"       # 300元图
+ORDER_IMG_ID = "AgACAgUAAxkBAAMHaHNcsjxLPznQCfWbm-OsrrlqEjMAAoDEMRvYcJlXAAGRbI7zcn1jAQADAgADeAADNgQ"          # 查看订单图
+CUSTOMER_IMG_ID = "AgACAgUAAxkBAAMGaHNcjZjiMsXTOg09h9Ss90Bg830AAn_EMRvYcJlXKY-YMN3mqOUBAAMCAAN4AAM2BA"       # 客服图
 
-# 每个按钮对应的图片和文字回复
-image_text_map = {
-    '🅜 油卡*1张': {
-        'image_url': 'https://example.com/youka1.jpg',
-        'caption': '您选择了油卡1张，请发送订单编号。'
-    },
-    '🅜 油卡*3张': {
-        'image_url': 'https://example.com/youka3.jpg',
-        'caption': '您选择了油卡3张，订单已生成。'
-    },
-    '🅜 油卡*5张': {
-        'image_url': 'https://example.com/youka5.jpg',
-        'caption': '油卡5张已加入购物车。'
-    },
-    '🅜 电信卡*10张': {
-        'image_url': 'https://example.com/dianxin10.jpg',
-        'caption': '电信卡10张，预计5分钟内发货。'
-    },
-    '🅜 电信卡*100张': {
-        'image_url': 'https://example.com/dianxin100.jpg',
-        'caption': '您选择了电信卡100张，批量订单处理中。'
-    },
-    '🖨 提取卡密': {
-        'image_url': None,
-        'caption': '请输入订单编号以提取卡密。'
-    },
-    '👩‍💻 在线客服': {
-        'image_url': None,
-        'caption': '请联系专属客服：@YourAgent'
-    }
-}
-
-# /start 指令响应
+# === /start 欢迎指令 ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("欢迎，请选择你需要的卡类：", reply_markup=reply_markup)
+    user = update.message.from_user
+    name = user.first_name or user.username or "朋友"
 
-# 按钮点击响应
-async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        ["🛒 购买油卡 *1 张", "🛒 购买油卡 *3 张"],
+        ["📦 查看订单", "💬 联系客服"]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+    caption = (
+        f"👏欢迎 {name} 加入【🅜 石化卡商自助下单系统】\n\n"
+        "⚠️ 请确保您的 Telegram 是从 [telegram.org](https://telegram.org) 官网下载\n"
+        "❌ 否则可能被篡改地址导致资产丢失！\n\n"
+        "📮 示例地址：`jkdlajdlj ajfliejaighidfli`\n"
+        "🧩 校验码：前5位 `THTXf` / 后5位 `EHYCQ`\n\n"
+        "💬 请点击下方菜单按钮继续操作 👇"
+    )
+
+    await update.message.reply_photo(
+        photo=WELCOME_IMG_ID,
+        caption=caption,
+        parse_mode="Markdown",
+        reply_markup=reply_markup
+    )
+
+# === 菜单按钮功能 ===
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
-    if text in image_text_map:
-        info = image_text_map[text]
-        if info['image_url']:
-            await update.message.reply_photo(photo=info['image_url'], caption=info['caption'])
-        else:
-            await update.message.reply_text(info['caption'])
-    else:
-        await update.message.reply_text("暂不支持此选项，请联系客服。")
 
-# 启动 bot
-app = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_buttons))
-app.run_polling()
+    if text == "🛒 购买油卡 *1 张":
+        await update.message.reply_photo(
+            photo=CARD_100_IMG_ID,
+            caption="💳 **中石化油卡 ¥100**\n⚡ 自动发货 | ⏱️ 秒到卡密\n📥 请联系 @your_support_bot 支付后提卡",
+            parse_mode="Markdown"
+        )
+
+    elif text == "🛒 购买油卡 *3 张":
+        await update.message.reply_photo(
+            photo=CARD_300_IMG_ID,
+            caption="💳 **中石化油卡 ¥300**（3张）\n⚡ 自动发货 | ⏱️ 秒到卡密\n📥 请联系 @your_support_bot 支付后提卡",
+            parse_mode="Markdown"
+        )
+
+    elif text == "📦 查看订单":
+        await update.message.reply_photo(
+            photo=ORDER_IMG_ID,
+            caption="📦 **订单查询系统**暂未开放\n如需查询请联系 @your_support_bot",
+            parse_mode="Markdown"
+        )
+
+    elif text == "💬 联系客服":
+        await update.message.reply_photo(
+            photo=CUSTOMER_IMG_ID,
+            caption="👩‍💻 客服 Telegram：@your_support_bot\n我们将尽快为您服务 💬",
+            parse_mode="Markdown"
+        )
+
+    else:
+        await update.message.reply_text("请点击下方菜单按钮选择服务 👇")
+
+# === 主函数 ===
+def main():
+    app = ApplicationBuilder().token("你的Bot Token").build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
